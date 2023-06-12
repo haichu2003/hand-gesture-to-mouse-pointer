@@ -1,16 +1,37 @@
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+import cv2
+import mediapipe as mp
+import pyautogui
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+video = cv2.VideoCapture(0)
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+
+handGesture = mp.solutions.hands.Hands()
+drawingTools = mp.solutions.drawing_utils
+screenWidth, screenHeight = pyautogui.size()
+
+
+while True:
+   _, frame = video.read()
+   frame = cv2.flip(frame, 1)
+   frameHeight, frameWidth, _ = frame.shape
+   rgbConvertedFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+   output = handGesture.process(rgbConvertedFrame)
+   hands = output.multi_hand_landmarks
+
+   if hands:
+       for hand in hands:
+           drawingTools.draw_landmarks(frame, hand)
+           landmarks = hand.landmark
+           for id, landmark in enumerate(landmarks):
+               if id == 8:
+                   x = int(landmark.x*frameWidth)
+                   y = int(landmark.y*frameHeight)
+                   cv2.circle(img=frame, center=(x, y),
+                              radius=30, color=(0, 255, 255))
+                   mousePositionX = screenWidth/frameWidth*x
+                   mousePositionY = screenHeight/frameHeight*y
+                   pyautogui.moveTo(mousePositionX, mousePositionY)
+
+   cv2.imshow('Virtual Mouse', frame)
+   cv2.waitKey(1)
